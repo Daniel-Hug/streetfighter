@@ -34,18 +34,19 @@ $(document).keydown(function(event) {
 // DOM / view helpers
 
 var pose = (function() {
-	// find and cache ryu pose divs
-	var poses = ['ready', 'still', 'throwing', 'cool'];
-	var poseDivs = {};
-	poses.forEach(function(pose) {
-		poseDivs[pose] = $('.ryu-' + pose);
-	});
+	// cache ryu pose divs
+	var poseDivs = {
+		still: $('.ryu-still')
+	};
 
 	return {
 		current: 'still',
 		strike: function(newPose, overrideCool) {
 			// true must be passed as 2nd argument to override cool pose
 			if (this.current === 'cool' && !overrideCool) return;
+
+			// cache div
+			poseDivs[newPose] = poseDivs[newPose] || $('.ryu-' + newPose);
 
 			// hide current pose and show new
 			poseDivs[this.current].hide();
