@@ -1,47 +1,82 @@
+// mouse over: ready pose
 var isHovering = false;
 $('.ryu').mouseenter(function() {
 	isHovering = true;
-	$('.ryu div').hide();
-	$('.ryu-ready').show();
+	pose.strike('ready');
 })
 .mouseleave(function() {
 	isHovering = false;
-	$('.ryu div').hide();
-	$('.ryu-still').show();
+	pose.strike('still');
 })
 
-// click to throw hadouken
+// click: throw hadouken
 .mousedown(function() {
+	pose.strike('throwing');
 	playHadouken();
-	$('.ryu div').hide();
-	$('.ryu-throwing').show();
-	$('.hadouken').finish().show().animate(
-		{'left': '1020px'},
-		500,
-		function() {
-			$(this).hide();
-			$(this).css('left', '520px');
-		}
-	);
+	animateHadouken();
 })
 .mouseup(function() {
-	$('.ryu div').hide();
-	$('.ryu-ready').show();
+	pose.strike('ready');
 });
 
-// hold 'x' to show cool pose
+// hold x: cool pose
 $(document).keydown(function(event) {
 	if (event.which !== 88) return;
-	$('.ryu div').hide();
-	$('.ryu-cool').show();
+	pose.strike('cool');
 })
 .keyup(function(event) {
 	if (event.which !== 88) return;
-	$('.ryu-cool').hide();
-	$(isHovering ? '.ryu-ready' : '.ryu-still').show();
+	pose.strike(isHovering ? 'ready' : 'still', true);
 });
 
-function playHadouken() {
-	$('#hadouken-sound')[0].volume = 0.5;
-	$('#hadouken-sound')[0].play();
-}
+
+
+// DOM / view helpers
+
+var pose = (function() {
+	// find and cache ryu pose divs
+	var poses = ['ready', 'still', 'throwing', 'cool'];
+	var poseDivs = {};
+	poses.forEach(function(pose) {
+		poseDivs[pose] = $('.ryu-' + pose);
+	});
+
+	return {
+		current: 'still',
+		strike: function(newPose, overrideCool) {
+			// true must be passed as 2nd argument to override cool pose
+			if (this.current === 'cool' && !overrideCool) return;
+
+			// hide current pose and show new
+			poseDivs[this.current].hide();
+			poseDivs[newPose].show();
+			this.current = newPose;
+		}
+	};
+})();
+
+
+var playHadouken = (function() {
+	var audioEl = $('#hadouken-sound')[0];
+	audioEl.volume = 0.5;
+
+	return function() {
+		audioEl.play();
+	};
+})();
+
+
+var animateHadouken = (function() {
+	var $hadouken = $('.hadouken');
+
+	return function() {
+		$hadouken.finish().show().animate(
+			{'left': '1020px'},
+			500,
+			function() {
+				$hadouken.hide();
+				$hadouken.css('left', '520px');
+			}
+		);
+	};
+})();
